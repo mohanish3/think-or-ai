@@ -1,169 +1,152 @@
-import { Brain, Bot, Zap, ChevronDown, ChevronUp, BookOpen, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Brain, Bot, Zap, Trash2, ChevronDown, ChevronUp, FlaskConical } from 'lucide-react';
 
-const CONFIG = {
+const VERDICTS = {
   brain: {
     label: 'Use Your Brain',
     emoji: '🧠',
-    gradient: 'from-emerald-600 to-teal-600',
-    glow: 'shadow-[0_0_30px_rgba(52,211,153,0.25)]',
-    border: 'border-emerald-500/30',
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-400',
-    bar: 'bg-emerald-500',
+    from:  'from-emerald-500',
+    to:    'to-teal-500',
+    glow:  'rgba(16,185,129,0.18)',
+    accent:'#10b981',
+    accentBg: 'bg-emerald-500/10',
+    accentText: 'text-emerald-400',
+    accentBorder: 'border-emerald-500/20',
     Icon: Brain,
   },
   ai: {
     label: 'Use AI',
     emoji: '🤖',
-    gradient: 'from-violet-600 to-purple-600',
-    glow: 'shadow-[0_0_30px_rgba(139,92,246,0.25)]',
-    border: 'border-violet-500/30',
-    bg: 'bg-violet-500/10',
-    text: 'text-violet-400',
-    bar: 'bg-violet-500',
+    from:  'from-violet-500',
+    to:    'to-purple-600',
+    glow:  'rgba(139,92,246,0.18)',
+    accent:'#8b5cf6',
+    accentBg: 'bg-violet-500/10',
+    accentText: 'text-violet-400',
+    accentBorder: 'border-violet-500/20',
     Icon: Bot,
   },
   hybrid: {
     label: 'Hybrid Approach',
     emoji: '⚡',
-    gradient: 'from-amber-500 to-orange-500',
-    glow: 'shadow-[0_0_30px_rgba(245,158,11,0.25)]',
-    border: 'border-amber-500/30',
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-400',
-    bar: 'bg-gradient-to-r from-emerald-500 to-violet-500',
+    from:  'from-amber-500',
+    to:    'to-orange-500',
+    glow:  'rgba(245,158,11,0.18)',
+    accent:'#f59e0b',
+    accentBg: 'bg-amber-500/10',
+    accentText: 'text-amber-400',
+    accentBorder: 'border-amber-500/20',
     Icon: Zap,
   },
 };
 
-function CircleProgress({ brainPct, aiPct, color }) {
-  const r = 54;
-  const circ = 2 * Math.PI * r;
-  const brainDash = (brainPct / 100) * circ;
-  const aiDash = (aiPct / 100) * circ;
-
-  return (
-    <svg width="140" height="140" viewBox="0 0 140 140" className="rotate-[-90deg]">
-      <circle cx="70" cy="70" r={r} fill="none" stroke="#1e1e30" strokeWidth="12" />
-      <circle
-        cx="70" cy="70" r={r} fill="none"
-        stroke={color === 'brain' ? '#10b981' : color === 'ai' ? '#8b5cf6' : '#10b981'}
-        strokeWidth="12"
-        strokeDasharray={`${brainDash} ${circ - brainDash}`}
-        strokeLinecap="round"
-        className="transition-all duration-700"
-      />
-      {color === 'hybrid' && (
-        <circle
-          cx="70" cy="70" r={r} fill="none"
-          stroke="#8b5cf6"
-          strokeWidth="12"
-          strokeDasharray={`${aiDash} ${circ - aiDash}`}
-          strokeDashoffset={-brainDash}
-          strokeLinecap="round"
-          className="transition-all duration-700"
-        />
-      )}
-    </svg>
-  );
-}
-
 export default function ResultCard({ task, result, onDelete }) {
   const [showEvidence, setShowEvidence] = useState(false);
-  const cfg = CONFIG[result.color];
-  const { Icon } = cfg;
+  const v = VERDICTS[result.color];
 
   return (
-    <div className={`animate-fade-in bg-[#13131f] border ${cfg.border} rounded-2xl overflow-hidden ${cfg.glow} transition-all`}>
-      {/* Header */}
-      <div className={`bg-gradient-to-r ${cfg.gradient} p-4 flex items-center justify-between`}>
-        <div>
-          <p className="text-white/70 text-xs uppercase tracking-widest font-medium mb-0.5">Recommendation</p>
-          <h3 className="text-white font-bold text-xl flex items-center gap-2">
-            {cfg.emoji} {cfg.label}
-          </h3>
+    <div
+      className="animate-slide-up rounded-2xl overflow-hidden border border-white/8"
+      style={{ boxShadow: `0 8px 40px ${v.glow}, 0 1px 0 rgba(255,255,255,0.05) inset` }}
+    >
+      {/* Hero banner */}
+      <div className={`bg-gradient-to-r ${v.from} ${v.to} px-6 py-5 flex items-center justify-between`}>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center text-2xl shadow-lg">
+            {v.emoji}
+          </div>
+          <div>
+            <p className="text-white/60 text-[11px] font-semibold uppercase tracking-widest mb-0.5">
+              Recommendation
+            </p>
+            <h3 className="text-white text-xl font-bold">{v.label}</h3>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className={`px-3 py-1.5 rounded-full bg-white/20 text-white font-bold text-sm`}>
-            {result.confidence}% confident
+
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <p className="text-white font-bold text-3xl leading-none">{result.confidence}%</p>
+            <p className="text-white/60 text-[11px] mt-0.5">confidence</p>
           </div>
           <button
             onClick={onDelete}
-            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white/70 hover:text-white"
+            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/50 hover:text-white transition-colors"
           >
-            <Trash2 size={14} />
+            <Trash2 size={13} />
           </button>
         </div>
       </div>
 
-      <div className="p-5">
+      {/* Body */}
+      <div className="bg-[#0d0d1a] p-6 space-y-5">
+
         {/* Task title */}
-        <div className="mb-4">
-          <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Task</p>
-          <p className="text-white font-semibold">{task.title}</p>
-          {task.description && <p className="text-slate-400 text-sm mt-1">{task.description}</p>}
+        <div>
+          <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-widest mb-1">Task</p>
+          <p className="text-white font-semibold text-[15px]">{task.title}</p>
+          {task.description && (
+            <p className="text-slate-500 text-sm mt-1 leading-relaxed">{task.description}</p>
+          )}
         </div>
 
-        {/* Score bars */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
-          <div>
-            <div className="flex justify-between mb-1.5">
-              <span className="text-emerald-400 text-xs font-medium flex items-center gap-1">
-                <Brain size={11} /> Brain
-              </span>
-              <span className="text-emerald-400 text-xs font-bold">{result.brainPct}%</span>
-            </div>
-            <div className="h-2 bg-[#1e1e30] rounded-full overflow-hidden">
+        {/* Brain vs AI bar */}
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-emerald-400 text-xs font-semibold flex items-center gap-1">
+              <Brain size={11} /> Brain
+            </span>
+            <div className="flex-1 h-2 bg-[#1a1a2e] rounded-full overflow-hidden flex">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all duration-700"
+                className="h-full bg-emerald-500 rounded-l-full transition-all duration-700"
                 style={{ width: `${result.brainPct}%` }}
               />
-            </div>
-          </div>
-          <div>
-            <div className="flex justify-between mb-1.5">
-              <span className="text-violet-400 text-xs font-medium flex items-center gap-1">
-                <Bot size={11} /> AI
-              </span>
-              <span className="text-violet-400 text-xs font-bold">{result.aiPct}%</span>
-            </div>
-            <div className="h-2 bg-[#1e1e30] rounded-full overflow-hidden">
               <div
-                className="h-full bg-violet-500 rounded-full transition-all duration-700"
+                className="h-full bg-violet-500 rounded-r-full transition-all duration-700"
                 style={{ width: `${result.aiPct}%` }}
               />
             </div>
+            <span className="text-violet-400 text-xs font-semibold flex items-center gap-1">
+              <Bot size={11} /> AI
+            </span>
+          </div>
+          <div className="flex justify-between px-0.5">
+            <span className="text-emerald-400 text-xs font-bold">{result.brainPct}%</span>
+            <span className="text-violet-400 text-xs font-bold">{result.aiPct}%</span>
           </div>
         </div>
 
-        {/* Reasons */}
-        <div className="mb-4">
-          <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Why this recommendation</p>
-          <div className="space-y-1.5">
+        {/* Why */}
+        <div>
+          <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-widest mb-2.5">Why</p>
+          <div className="flex flex-wrap gap-2">
             {result.reasons.map((r, i) => (
-              <div key={i} className={`flex items-start gap-2.5 px-3 py-2 rounded-lg text-sm ${
-                r.pro === 'brain' ? 'bg-emerald-500/10 text-emerald-300' :
-                r.pro === 'ai' ? 'bg-violet-500/10 text-violet-300' :
-                'bg-amber-500/10 text-amber-300'
-              }`}>
-                <span className="text-base leading-none mt-0.5">{r.icon}</span>
-                <span>{r.text}</span>
-              </div>
+              <span
+                key={i}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
+                  r.pro === 'brain'  ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-300' :
+                  r.pro === 'ai'     ? 'bg-violet-500/8  border-violet-500/20  text-violet-300'  :
+                                       'bg-amber-500/8   border-amber-500/20   text-amber-300'
+                }`}
+              >
+                <span>{r.icon}</span>
+                {r.shortText || r.text.split('—')[0].trim()}
+              </span>
             ))}
           </div>
         </div>
 
         {/* Strategy */}
-        <div className="mb-4">
-          <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Recommended Strategy</p>
-          <ol className="space-y-1.5">
+        <div>
+          <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-widest mb-2.5">Strategy</p>
+          <ol className="space-y-2">
             {result.strategy.map((step, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
-                <span className={`flex-shrink-0 w-5 h-5 rounded-full ${cfg.bg} ${cfg.text} text-xs flex items-center justify-center font-bold mt-0.5`}>
+              <li key={i} className="flex items-start gap-3">
+                <span
+                  className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${v.accentBg} ${v.accentText}`}
+                >
                   {i + 1}
                 </span>
-                {step}
+                <span className="text-slate-300 text-sm leading-relaxed">{step}</span>
               </li>
             ))}
           </ol>
@@ -171,25 +154,25 @@ export default function ResultCard({ task, result, onDelete }) {
 
         {/* Evidence toggle */}
         <button
-          onClick={() => setShowEvidence(!showEvidence)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[#0d0d1a] hover:bg-[#1a1a2e] transition-colors text-xs text-slate-400"
+          onClick={() => setShowEvidence(s => !s)}
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/3 hover:bg-white/5 border border-white/5 transition-colors text-xs text-slate-500 hover:text-slate-300"
         >
           <span className="flex items-center gap-2">
-            <BookOpen size={12} />
-            Medical / Scientific Evidence
+            <FlaskConical size={12} />
+            Scientific evidence behind this
           </span>
           {showEvidence ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
         </button>
 
         {showEvidence && (
-          <div className="mt-2 space-y-2">
+          <div className="space-y-2 animate-fade-in">
             {result.reasons.map((r, i) => (
-              <div key={i} className="px-3 py-2 rounded-lg bg-[#0d0d1a] text-xs text-slate-500">
-                <span className="mr-1">{r.icon}</span>
-                {r.pro === 'brain' && 'Brain: '}
-                {r.pro === 'ai' && 'AI: '}
-                {r.pro === 'hybrid' && 'Hybrid: '}
-                <span className="text-slate-400">{r.text}</span>
+              <div key={i} className="px-4 py-3 rounded-xl bg-white/3 border border-white/5">
+                <p className="text-[11px] font-semibold text-slate-500 mb-1 flex items-center gap-1.5">
+                  {r.icon}
+                  {r.pro === 'brain' ? 'Favors brain' : r.pro === 'ai' ? 'Favors AI' : 'Favors hybrid'}
+                </p>
+                <p className="text-slate-400 text-xs leading-relaxed">{r.text}</p>
               </div>
             ))}
           </div>

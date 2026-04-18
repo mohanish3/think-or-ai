@@ -121,31 +121,31 @@ function buildReasons(ratings, verdict) {
   const n = (v) => (v - 1) / 4;
 
   if (n(ratings.learningGoal) > 0.5) {
-    reasons.push({ icon: '📚', text: 'High learning intent — thinking it through yourself builds lasting skill', pro: 'brain' });
+    reasons.push({ icon: '📚', shortText: 'Skill-building', text: 'High learning intent — effortful thinking strengthens long-term memory encoding (Roediger & Butler, 2011). Offloading to AI bypasses this.', pro: 'brain' });
   }
   if (n(ratings.creativity) > 0.5) {
-    reasons.push({ icon: '🎨', text: 'Requires your personal creative voice — AI output would feel generic', pro: 'brain' });
+    reasons.push({ icon: '🎨', shortText: 'Needs your voice', text: 'Requires personal creative expression. Creative flow states (Csikszentmihalyi) are disrupted by tool-switching; authentic creative identity is built through practice.', pro: 'brain' });
   }
   if (n(ratings.emotionalWeight) > 0.5) {
-    reasons.push({ icon: '❤️', text: 'Emotionally significant — your intuition and values matter here', pro: 'brain' });
+    reasons.push({ icon: '❤️', shortText: 'Emotionally personal', text: 'Emotionally significant decisions benefit from somatic markers (Damasio\'s somatic marker hypothesis) — emotions are integral to rational decision-making. AI lacks embodied experience.', pro: 'brain' });
   }
   if (n(ratings.repetitive) > 0.5) {
-    reasons.push({ icon: '🔄', text: 'Repetitive work — AI handles this fast with no skill sacrifice', pro: 'ai' });
+    reasons.push({ icon: '🔄', shortText: 'Routine task', text: 'Repetitive tasks show diminishing learning returns. Automating them frees your prefrontal cortex for higher-order thinking (Miller & Cohen, 2001).', pro: 'ai' });
   }
   if (n(ratings.timeUrgency) > 0.5) {
-    reasons.push({ icon: '⏱️', text: 'Urgent timeline — AI reduces error risk from rushed thinking', pro: 'ai' });
+    reasons.push({ icon: '⏱️', shortText: 'Time-pressured', text: 'Under time pressure, AI reduces error rates caused by rushed human judgment (Heitz speed-accuracy tradeoff, 2014).', pro: 'ai' });
   }
   if (n(ratings.complexity) > 0.5) {
-    reasons.push({ icon: '🧩', text: 'High complexity — AI can synthesize large information spaces quickly', pro: 'ai' });
+    reasons.push({ icon: '🧩', shortText: 'Highly complex', text: 'AI excels at synthesizing large information spaces. High complexity increases cognitive load, reducing decision quality (Sweller\'s cognitive load theory).', pro: 'ai' });
   }
   if (n(ratings.cognitiveLoad) > 0.5) {
-    reasons.push({ icon: '😴', text: 'Mental fatigue degrades decision quality — let AI scaffold your thinking', pro: 'ai' });
+    reasons.push({ icon: '😴', shortText: 'Mental fatigue', text: 'Decision fatigue significantly degrades choice quality (Danziger et al., 2011). Under fatigue, AI acts as a cognitive scaffold without permanent skill atrophy.', pro: 'ai' });
   }
   if (n(ratings.qualityStakes) > 0.7) {
-    reasons.push({ icon: '🎯', text: 'High stakes — use AI as a draft tool, but apply your judgment at the end', pro: 'hybrid' });
+    reasons.push({ icon: '🎯', shortText: 'High stakes', text: 'High-stakes outputs need human judgment for nuance, ethics, and accountability — but AI can enhance quality as a drafting assistant with your oversight.', pro: 'hybrid' });
   }
 
-  return reasons.length > 0 ? reasons : [{ icon: '⚖️', text: 'Balanced task — both approaches have roughly equal merit', pro: 'hybrid' }];
+  return reasons.length > 0 ? reasons : [{ icon: '⚖️', shortText: 'Balanced task', text: 'Both approaches have roughly equal merit here. Either will work — pick based on how much time you have.', pro: 'hybrid' }];
 }
 
 function buildStrategy(task, verdict) {
