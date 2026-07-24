@@ -3,6 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new OpenAI();
 
+// ponytail: in-memory per-IP limiter, single instance only. Move to Upstash/Redis if deployed across multiple instances.
+const RATE_LIMIT = 10;
+const WINDOW_MS = 60_000;
+const requestLog = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (requestLog.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
+  recent.push(now);
+  requestLog.set(ip, recent);
+  return recent.length > RATE_LIMIT;
+}
+
 const analyzeTaskSchema = {
   type: "object" as const,
   properties: {
@@ -56,6 +69,14 @@ const analyzeTaskSchema = {
 };
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: "Too many requests. Wait a minute and try again." },
+      { status: 429 }
+    );
+  }
+
   const { task } = await req.json();
 
   if (!task || typeof task !== "string" || task.trim().length < 3) {

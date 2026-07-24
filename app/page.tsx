@@ -10,6 +10,10 @@ import {
   Lightbulb,
   Sun,
   Moon,
+  Share2,
+  Check,
+  History,
+  Pencil,
 } from "lucide-react";
 
 interface Attribute {
@@ -33,6 +37,29 @@ interface Analysis {
   reasons: string[];
   strategy: StrategyStep[];
   science_note: string;
+}
+
+interface HistoryEntry {
+  task: string;
+  analysis: Analysis;
+  ts: number;
+}
+
+const HISTORY_KEY = "think-or-ai-history";
+const HISTORY_LIMIT = 20;
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveToHistory(entry: HistoryEntry) {
+  const next = [entry, ...loadHistory()].slice(0, HISTORY_LIMIT);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+  return next;
 }
 
 const VERDICT_CONFIG = {
@@ -117,6 +144,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dark, setDark] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const DEMO: Analysis = {
@@ -146,10 +175,23 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("demo") === "1") {
+    const params = new URLSearchParams(window.location.search);
+    const shared = params.get("a");
+    if (shared) {
+      try {
+        const decoded = JSON.parse(decodeURIComponent(shared));
+        if (decoded.task && decoded.analysis) {
+          setTask(decoded.task);
+          setAnalysis(decoded.analysis);
+        }
+      } catch {
+        // ignore malformed share links
+      }
+    } else if (params.get("demo") === "1") {
       setTask("Write a cover letter for a startup I care about");
       setAnalysis(DEMO);
     }
+    setHistory(loadHistory());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -181,6 +223,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong");
       setAnalysis(data as Analysis);
+      setHistory(saveToHistory({ task: task.trim(), analysis: data as Analysis, ts: Date.now() }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -193,6 +236,27 @@ export default function Home() {
     setTask("");
     setError(null);
     setTimeout(() => textareaRef.current?.focus(), 50);
+  }
+
+  // Keeps the task text so it can be tweaked before rerunning, unlike handleReset.
+  function handleEditAgain() {
+    setAnalysis(null);
+    setError(null);
+    setTimeout(() => textareaRef.current?.focus(), 50);
+  }
+
+  function loadHistoryEntry(entry: HistoryEntry) {
+    setTask(entry.task);
+    setAnalysis(entry.analysis);
+  }
+
+  async function handleShare() {
+    if (!analysis) return;
+    const payload = encodeURIComponent(JSON.stringify({ task, analysis }));
+    const url = `${window.location.origin}${window.location.pathname}?a=${payload}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   const cfg = analysis ? VERDICT_CONFIG[analysis.verdict] : null;
@@ -317,6 +381,27 @@ export default function Home() {
                 ))}
               </div>
             </div>
+
+            {history.length > 0 && (
+              <div className="mt-10 w-full max-w-2xl text-left">
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <History className="w-3.5 h-3.5" />
+                  Recent analyses
+                </p>
+                <div className="flex flex-col gap-2">
+                  {history.slice(0, 5).map((entry) => (
+                    <button
+                      key={entry.ts}
+                      onClick={() => loadHistoryEntry(entry)}
+                      className="flex items-center justify-between gap-3 text-left text-sm bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 transition-colors"
+                    >
+                      <span className="text-gray-700 dark:text-gray-300 line-clamp-1">{entry.task}</span>
+                      <span className="text-xs text-gray-400 flex-shrink-0">{entry.analysis.verdict}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* ── Results State ── */
@@ -439,13 +524,29 @@ export default function Home() {
               <p className="text-sm text-gray-400 line-clamp-1">
                 <span className="text-gray-500 dark:text-gray-400 font-medium">Task:</span> {task}
               </p>
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl px-4 py-2 transition-colors whitespace-nowrap"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Analyze another task
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl px-4 py-2 transition-colors whitespace-nowrap"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
+                  {copied ? "Copied" : "Copy link"}
+                </button>
+                <button
+                  onClick={handleEditAgain}
+                  className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl px-4 py-2 transition-colors whitespace-nowrap"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Edit task
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl px-4 py-2 transition-colors whitespace-nowrap"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  New analysis
+                </button>
+              </div>
             </div>
           </div>
         )}
